@@ -10,11 +10,6 @@ strip = Adafruit_NeoPixel(N_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 byte val;// Data received from the serial port
 int b = 0;
 
-
-int rainbowCounter = 0;
-boolean rainbow = false;
-int rainbowTick = 0;
-
 const int numReadings = 10;
 
 int readings[numReadings];      // the readings from the analog input
@@ -31,6 +26,10 @@ int sampleIndex = 0;                  // the index of the current reading
 int SampleTotal = 0;                  // the running total
 
 int forSample = 0;
+
+int idleCounter = 0;
+int idleCounter2 = 0;
+int idleCounter3 = 0;
 
 
 
@@ -76,20 +75,18 @@ void loop()
 
 	if (n != b)
 	{
+
 		n = b;                  // Raw reading from mic
 
-	}
+		idleCounter = 0;
+		idleCounter2 = 0;
+		idleCounter3 = 0;
 
-
-	if (rainbowCounter > 255)
-	{
-		rainbowCounter = 0;
-		// if (rainbowTick > 2)
-		// {
-		// 	rainbowTick = 0;
-		// }
-		// rainbowTick++;
+	} else if (idleCounter <= 32000 && idleCounter3 < 6000) {
+		idleCounter++;
 	}
+	if(idleCounter >= 32000) idleCounter2++;
+	if(idleCounter2 >= 32000) idleCounter3++;
 
 
 	total = total - readings[index];
@@ -118,22 +115,24 @@ void loop()
 			blue[i] = blue[i - 1];
 
 		}
-		if (average < 120) {
-			red[0] = 0;
-			green[0] = average;
-			blue[0] = 0;
-		} else if (average < 190) {
-			red[0] = average;
-			green[0] = average;
-			blue[0] = 0;
-		} else if (average < 255) {
-			red[0] = average;
-			green[0] = 0;
-			blue[0] = 0;
-		}
+		// if (average < 120) {
+		// 	red[0] = 0;
+		// 	green[0] = average;
+		// 	blue[0] = 0;
+		// } else if (average < 190) {
+		// 	red[0] = average;
+		// 	green[0] = average;
+		// 	blue[0] = 0;
+		// } else if (average < 256) {
+		// 	red[0] = average;
+		// 	green[0] = 0;
+		// 	blue[0] = 0;
+		// }
 
-
-
+		
+		red[0] = WheelR(((256 / strip.numPixels()) - (average + 2)) & 255);
+		green[0] = WheelG(((256 / strip.numPixels()) - (average + 2)) & 255);
+		blue[0] = 0; //WheelB(((256 / strip.numPixels()) - average) & 255);
 
 		// red[0] = constrain(rgbColour[0] - map(average, 0, 255, 255, 0), 0, 255);
 		// green[0] = constrain(rgbColour[1] - map(average, 0, 255, 255, 0), 0, 255);
@@ -146,12 +145,94 @@ void loop()
 			strip.setPixelColor(i, red[i], green[i], blue[i]);
 			// strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) - rainbowCounter) & 255, i));
 		}
-		rainbowCounter += (256 / 25);
+	
 		test = -1000;
 		strip.show(); // Update strip
 	} else {
 		test++;
 	}
 
+	if (idleCounter3 > 5000) {
+		 rainbow(10);
+	}
 
+
+
+}
+
+uint32_t WheelR(byte WheelPos)
+{
+	if (WheelPos < 85)
+	{
+		return WheelPos * 3;
+	}
+	else if (WheelPos < 170)
+	{
+		WheelPos -= 85;
+		return 255 - WheelPos * 3;
+	}
+	else
+	{
+		WheelPos -= 170;
+		return 0;
+	}
+}
+uint32_t WheelG(byte WheelPos)
+{
+	if (WheelPos < 85)
+	{
+		return 0;
+	}
+	else if (WheelPos < 170)
+	{
+		WheelPos -= 85;
+		return WheelPos * 3;
+	}
+	else
+	{
+		WheelPos -= 170;
+		return 255 - WheelPos * 3;
+	}
+}
+uint32_t WheelB(byte WheelPos)
+{
+	if (WheelPos < 85)
+	{
+		return 255 - WheelPos * 3;
+	}
+	else if (WheelPos < 170)
+	{
+		WheelPos -= 85;
+		return  0;
+	}
+	else
+	{
+		WheelPos -= 170;
+		return 0;
+	}
+}
+
+
+void rainbow(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=255; j>0; j--) {
+    for(i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel((i+j) & 255));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+uint32_t Wheel(byte WheelPos) {
+  if(WheelPos < 85) {
+   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+  } else if(WheelPos < 170) {
+   WheelPos -= 85;
+   return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  } else {
+   WheelPos -= 170;
+   return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
 }
