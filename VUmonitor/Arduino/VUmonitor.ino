@@ -17,7 +17,7 @@ int index = 0;                  // the index of the current reading
 int total = 0;                  // the running total
 int average = 0;                // the average
 
-const int numSamples = N_PIXELS;
+const int numSamples = 34;
 
 int red[numSamples];      // the readings from the analog input
 int green[numSamples];      // the readings from the analog input
@@ -31,6 +31,8 @@ int idleCounter = 0;
 int idleCounter2 = 0;
 int idleCounter3 = 0;
 
+int rainbowCounter = 0;
+int rainbowTick = 5;
 
 
 void setup()
@@ -78,15 +80,16 @@ void loop()
 
 		n = b;                  // Raw reading from mic
 
-		idleCounter = 0;
-		idleCounter2 = 0;
-		idleCounter3 = 0;
+		// idleCounter = 0;
+		// idleCounter2 = 0;
+		// idleCounter3 = 0;
 
-	} else if (idleCounter <= 32000 && idleCounter3 < 6000) {
-		idleCounter++;
-	}
-	if(idleCounter >= 32000) idleCounter2++;
-	if(idleCounter2 >= 32000) idleCounter3++;
+	} 
+	// else if (idleCounter <= 32000 && idleCounter3 < 6000) {
+	// 	idleCounter++;
+	// }
+	// if (idleCounter >= 32000) idleCounter2++;
+	// if (idleCounter2 >= 32000) idleCounter3++;
 
 
 	total = total - readings[index];
@@ -129,7 +132,7 @@ void loop()
 		// 	blue[0] = 0;
 		// }
 
-		
+
 		red[0] = WheelR(((256 / strip.numPixels()) - (average + 2)) & 255);
 		green[0] = WheelG(((256 / strip.numPixels()) - (average + 2)) & 255);
 		blue[0] = 0; //WheelB(((256 / strip.numPixels()) - average) & 255);
@@ -139,23 +142,51 @@ void loop()
 		// blue[0] = constrain(rgbColour[2] - map(average, 0, 255, 255, 0), 0, 255);
 
 
-		for (i = 0; i < N_PIXELS; i++)
+		for (i = 0; i < 34; i++)
 		{
 			// strip.setPixelColor(i, samples[i], samples[i], samples[i]);
-			strip.setPixelColor(i, red[i], green[i], blue[i]);
+			strip.setPixelColor(54 - i, red[i], green[i], blue[i]);
 			// strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) - rainbowCounter) & 255, i));
+			// 55 76
+			strip.setPixelColor(110 - i, red[i], green[i], blue[i]);
 		}
-	
-		test = -1000;
-		strip.show(); // Update strip
-	} else {
+
+		test = 0;
+		 // Update strip
+	}
+	 else {
 		test++;
 	}
 
-	if (idleCounter3 > 5000) {
-		 rainbow(10);
+	// if (idleCounter3 > 5000) {
+	// 	rainbow(10);
+	// }
+
+
+	if (rainbowCounter < 257)
+	{
+		if (rainbowTick > 2)
+		{
+			rainbowCounter += 2;
+			rainbowTick = 0;
+		}
+		rainbowTick++;
+	}
+	else
+	{
+		rainbowCounter = 0;
 	}
 
+
+	for (i = 0; i < 21; i++) {
+		strip.setPixelColor(i, Wheel(((i * 256 / 24) + rainbowCounter) & 255));
+		strip.setPixelColor(76 - i, Wheel(((i * 256 / 24) - rainbowCounter) & 255));
+	}
+	for (i = 0; i < 21; i++) {
+		if (i >= map(average, 0, 255, 0, 20)) strip.setPixelColor(i, 0, 0, 0);
+		if (i >= map(average, 0, 255, 0, 20)) strip.setPixelColor(76 - i, 0, 0, 0);
+	}
+	strip.show();
 
 
 }
@@ -214,25 +245,25 @@ uint32_t WheelB(byte WheelPos)
 
 
 void rainbow(uint8_t wait) {
-  uint16_t i, j;
+	uint16_t i, j;
 
-  for(j=255; j>0; j--) {
-    for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i+j) & 255));
-    }
-    strip.show();
-    delay(wait);
-  }
+	for (j = 255; j > 0; j--) {
+		for (i = 0; i < strip.numPixels(); i++) {
+			strip.setPixelColor(i, Wheel((i + j) & 255));
+		}
+		strip.show();
+		delay(wait);
+	}
 }
 
 uint32_t Wheel(byte WheelPos) {
-  if(WheelPos < 85) {
-   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
-  } else if(WheelPos < 170) {
-   WheelPos -= 85;
-   return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  } else {
-   WheelPos -= 170;
-   return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
+	if (WheelPos < 85) {
+		return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+	} else if (WheelPos < 170) {
+		WheelPos -= 85;
+		return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+	} else {
+		WheelPos -= 170;
+		return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+	}
 }
