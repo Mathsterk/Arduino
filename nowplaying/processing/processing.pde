@@ -14,8 +14,13 @@ String textLengthStr;
 
 boolean RCV = false;
 boolean RDY = false;
-int RDYfailCount = 0;
 boolean ACK = false;
+boolean OK = false;
+
+int RCVtimeout = 0;
+int RDYtimeout = 0;
+int ACKtimeout = 0;
+int OKtimeout = 0;
 
 void setup() {
   //Create a switch that will control the frequency of text file reads.
@@ -43,38 +48,67 @@ void draw() {
     /*Only send new data. This IF statement will allow new data to be sent to
      the arduino. */
 
+    if (val.equals("OK")) {
+      OK = true;
+      OKtimeout = 0;
+    } else if (!RCV && !RDY && !ACK) {
+      OKtimeout++;
+    }
 
-    if (val.equals("OK") && !RCV) {
+    if (OK && !RCV && !RDY && !ACK) {
+      OK = false;
       textLengthStr = String.valueOf(subtext.length());
       myPort.write("RCV " + textLengthStr + "\n");
-      print("processing ");
       println("RCV " + textLengthStr);
       RCV = true;
-      RDYfailCount = 0;;
+      RCVtimeout = 0;
+    } else if (OK && !RDY && !ACK) {
+      RCVtimeout++;
     }
-    if (val.equals("RDY") && !RDY && !RCV) {
+
+    if (val.equals("RDY") && !RDY && RCV && !ACK && OK) {
       myPort.write(subtext);
       println(subtext);
+      RDY = true;
+      RDYtimeout = 0;
+    } else if (!RCV && OK && !ACK) {
+      RDYtimeout++;
     }
-    if (val.equals("ACK " + subtext.length()) && !ACK && !RDY && !RCV) {
+    
+    if(subtext.length() >= 65)
+      
+    if (val.equals("ACK " + subtext.length()) && !ACK && RDY && RCV && OK) {
       //println(subtext);
       ok = false;
       ACK = true;
+      ACKtimeout = 0;
+      println("P ACK");
+    } else if (!RCV && !RDY && OK) {
+      ACKtimeout++;
     }
-    if(ACK) {
+
+    if (ACK) {
       //If the text file has run out of numbers, then read the text file again in 5 seconds.
-      delay(5000);
-      mySwitch=1;
-    }
-    if(!RDY) {
-      RDYfailCount++;
       delay(1000);
+      mySwitch=1;
+      RCV = false;
+      RDY = false;
+      ACK = false;
+    }
+    if (RCVtimeout >= 100 || RCVtimeout >= 100 || RCVtimeout>= 100 || RCVtimeout >= 100) {
+      RCV = false;
+      RDY = false;
+      ACK = false;
+      OK = true;
+
+      RCVtimeout = 0;
+      RDYtimeout = 0;
+      ACKtimeout = 0;
+      OKtimeout = 0;
+
+      println("TIMEOUT! TIMEOUT!");
+    }
   }
-  if(RDYfailCount >= 10)
-  RDY = false;
-  RCV = false;
-  delay(1000);
-}
 }
 
 
