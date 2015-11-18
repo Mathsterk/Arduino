@@ -60,6 +60,8 @@ void setup()
 	matrix.setBrightness(255);
 	matrix.setTextColor(colors[0]);
 	establishContact();
+	Serial.println("");
+	delay(1000);
 	Serial.println("OK");
 }
 
@@ -73,7 +75,7 @@ void loop ()
 	while (!pong) {
 		readCommand();
 		// "command" now contains the full command
-		Serial.println(command);
+		// Serial.println(command);
 	}
 	// serialtochar();
 	// matrix.setBrightness(map(analogRead(A0), 0, 1023, 1, 255));
@@ -86,7 +88,7 @@ void loop ()
 	// 	// Serial.println("OK");
 	// 	counter = 0;
 
-	// 	matrix.setTextColor(matrix.Color(random(255), random(255), random(255)));
+	// 	matrix.setTe33332xtColor(matrix.Color(random(255), random(255), random(255)));
 
 	// }
 
@@ -177,8 +179,8 @@ void chartoscreen(String readString)
 	if (readString.length() == 0) {
 		Serial.println("OK");
 		pong = false;
-			if (++color >= 6) color = 0;
-			matrix.setTextColor(colors[color]);
+		if (++color >= 6) color = 0;
+		matrix.setTextColor(colors[color]);
 	}
 }
 
@@ -205,6 +207,6 @@ void chartoscreen(String readString)
 void establishContact() {
 	while (Serial.available() <= 0) {
 		Serial.println("A");   // send a capital A
-		delay(300);
+		delay(500);
 	}
 }
