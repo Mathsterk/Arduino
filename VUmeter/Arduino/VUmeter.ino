@@ -1,8 +1,8 @@
 #include <Adafruit_NeoPixel.h>
 
-#define N_PIXELS  119  // Number of pixels in strand
+#define N_PIXELS  64  // Number of pixels in strand
 #define MIC_PIN   A5  // Microphone is attached to this analog pin
-#define LED_PIN    53  // NeoPixel LED strand is connected to this pin
+#define LED_PIN    52  // NeoPixel LED strand is connected to this pin
 #define SAMPLES    20  // Length of buffer for dynamic level adjustment
 #define TOP       (N_PIXELS + 1) // Allow dot to go slightly off scale
 #define PEAK_FALL 15  // Rate of peak falling dot
@@ -17,7 +17,7 @@ int vol[SAMPLES],       // Collection of prior volume samples
     maxLvlAvg = 255;
 
 Adafruit_NeoPixel
-strip = Adafruit_NeoPixel(N_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
+strip = Adafruit_NeoPixel(N_PIXELS, LED_PIN, NEO_RGB + NEO_KHZ800);
 
 Adafruit_NeoPixel
 strip2 = Adafruit_NeoPixel(35, 34, NEO_RGB + NEO_KHZ800);
