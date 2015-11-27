@@ -51,6 +51,14 @@ char commandBuffer[128];
 int commandBufferSize = 0;
 boolean pong = false;
 
+int redVal = 0;
+int greenVal = 0;
+int blueVal = 0;
+
+String redString;
+String greenString;
+String blueString;
+
 void setup()
 {
 	Serial.begin(115200);	//turn on the serial connection
@@ -59,8 +67,14 @@ void setup()
 	matrix.setTextWrap(false);
 	matrix.setBrightness(255);
 	matrix.setTextColor(colors[0]);
+	// matrix.fillScreen(0);  //clear the screen
+	// matrix.setCursor(16, 0);  //set the begining cursor position
+	// matrix.setTextColor(matrix.Color(255, 255, 255));
+	// chartoscreen("Hello");
 	establishContact();
 	Serial.println("");
+
+
 	delay(1000);
 	Serial.println("OK");
 }
@@ -81,14 +95,29 @@ void loop ()
 	// matrix.setBrightness(map(analogRead(A0), 0, 1023, 1, 255));
 
 	if (pong) {
-		// readString = command;
-		chartoscreen(command);
+		String commandStr = String(command);
+
+		redString = commandStr.substring(0, 3);
+		greenString = commandStr.substring(4, 7);
+		blueString = commandStr.substring(8, 11);
+
+		redVal = redString.toInt();
+		greenVal = greenString.toInt();
+		blueVal = blueString.toInt();
+
+		// Serial.print(redVal);
+		// Serial.print(" ");
+		// Serial.print(greenVal);
+		// Serial.print(" ");
+		// Serial.println(blueVal);
+		matrix.setTextColor(matrix.Color(redVal, greenVal, blueVal));
+		chartoscreen(commandStr.substring(12));
 	}
 	// if (counter++ > 5000) {
 	// 	// Serial.println("OK");
 	// 	counter = 0;
 
-	// 	matrix.setTe33332xtColor(matrix.Color(random(255), random(255), random(255)));
+	// 	matrix.setTextColor(matrix.Color(random(255), random(255), random(255)));
 
 	// }
 
