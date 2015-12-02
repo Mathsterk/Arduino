@@ -47,6 +47,12 @@ String redString;
 String greenString;
 String blueString;
 
+String prevSubtext;
+boolean newTextData = true;
+String serialText;
+int oldCount = 0;
+int oldCountTwo = 0;
+
 void setup() {
     //Create a switch that will control the frequency of text file reads.
     //When mySwitch=1, the program is setup to read the text file.
@@ -68,51 +74,74 @@ void draw() {
         if (mySwitch > 0) {
             /*The readData function can be found later in the code.
              This is the call to read a CSV file on the computer hard-drive. */
+            prevSubtext = subtext;
             readData("C:\\Users\\Mathsterk\\Programmer\\Snip\\snip.txt");
-            img = loadImage("C:\\Users\\Mathsterk\\Programmer\\Snip\\Snip_Artwork.jpg" /* Your image here */  );
-
+            if (subtext.equals(prevSubtext)) newTextData = false;
+            else newTextData = true;
             /*The following switch prevents continuous reading of the text file, until
-             we are ready to read the file again. */
+                 we are ready to read the file again. */
             mySwitch = 0;
-            getColors();
-            boolean colorFull = false;
-            while (!colorFull) {
-                int highest = redVal;
+            println("readData");
+            if (newTextData) {
+                println("newTextData");
+                img = loadImage("C:\\Users\\Mathsterk\\Programmer\\Snip\\Snip_Artwork.jpg" /* Your image here */  );
 
-                if (greenVal > highest) {
-                    highest = greenVal;
-                }
-                if (blueVal > highest) {
-                    highest = blueVal;
-                }
-                highest = abs(255 - highest);
-                redVal += highest;
-                greenVal += highest;
-                blueVal += highest;
 
-                if (redVal == 255 || greenVal == 255 || blueVal == 255) {
-                    colorFull = true;
+
+                getColors();
+                boolean colorFull = false;
+                while (!colorFull) {
+                    int highest = redVal;
+
+                    if (greenVal > highest) {
+                        highest = greenVal;
+                    }
+                    if (blueVal > highest) {
+                        highest = blueVal;
+                    }
+                    highest = abs(255 - highest);
+                    redVal += highest;
+                    greenVal += highest;
+                    blueVal += highest;
+
+                    if (redVal == 255 || greenVal == 255 || blueVal == 255) {
+                        colorFull = true;
+                    }
+                }
+
+
+                if (redVal < 10) redString = "00" + str(redVal);
+                if (redVal < 100) redString = "0" + str(redVal);
+                if (redVal >= 100) redString = str(redVal);
+
+                if (greenVal < 10) greenString = "00" + str(greenVal);
+                if (greenVal < 100) greenString = "0" + str(greenVal);
+                if (greenVal >= 100) greenString = str(greenVal);
+
+                if (blueVal < 10) blueString = "00" + str(blueVal);
+                if (blueVal < 100) blueString = "0" + str(blueVal);
+                if (blueVal >= 100) blueString = str(blueVal);
+
+                serialText = redString + "," + greenString + "," + blueString + " " + subtext;
+                // colorString += subtext;
+                // subtext = "";
+                // subtext = colorString;
+                // println(subtext);
+                oldCount = 0;
+                oldCountTwo = 0;
+            } else {
+                println("oldtextdata");
+                serialText = "255,255,255  ";
+                delay(1000);
+                if (++oldCount > 10) {
+                    mySwitch = 1;
+                    oldCount = 0;
+                    if (++oldCountTwo > 10) {
+                        newTextData = true;
+                        oldCountTwo = 0;
+                    }
                 }
             }
-
-
-            if (redVal < 10) redString = "00" + str(redVal);
-            if (redVal < 100) redString = "0" + str(redVal);
-            if (redVal >= 100) redString = str(redVal);
-
-            if (greenVal < 10) greenString = "00" + str(greenVal);
-            if (greenVal < 100) greenString = "0" + str(greenVal);
-            if (greenVal >= 100) greenString = str(greenVal);
-
-            if (blueVal < 10) blueString = "00" + str(blueVal);
-            if (blueVal < 100) blueString = "0" + str(blueVal);
-            if (blueVal >= 100) blueString = str(blueVal);
-
-            subtext = redString + "," + greenString + "," + blueString + " " + subtext;
-            // colorString += subtext;
-            // subtext = "";
-            // subtext = colorString;
-            // println(subtext);
         }
         /*Only send new data. This IF statement will allow new data to be sent to
          the arduino. */
@@ -126,7 +155,7 @@ void draw() {
         }
 
         if (OK && !RCV && !RDY && !ACK) {
-            textLengthStr = String.valueOf(subtext.length());
+            textLengthStr = String.valueOf(serialText.length());
             myPort.write("RCV " + textLengthStr + "\n");
             println("RCV " + textLengthStr);
             RCV = true;
@@ -136,8 +165,8 @@ void draw() {
         }
 
         if (val.equals("RDY") && !RDY && RCV && !ACK && OK) {
-            myPort.write(subtext);
-            println(subtext);
+            myPort.write(serialText);
+            println(serialText);
             RDY = true;
             RDYtimeout = 0;
         } else if (!RCV && OK && !ACK) {
@@ -152,7 +181,7 @@ void draw() {
                 ACKval += int(val.substring(4));
                 println("pACKval " + ACKval);
             }
-            if (ACKval == subtext.length()) {
+            if (ACKval == serialText.length()) {
                 ok = false;
                 ACK = true;
                 ACKtimeout = 0;

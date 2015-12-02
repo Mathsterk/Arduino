@@ -111,7 +111,9 @@ void loop ()
 		// Serial.print(" ");
 		// Serial.println(blueVal);
 		matrix.setTextColor(matrix.Color(redVal, greenVal, blueVal));
-		chartoscreen(commandStr.substring(12));
+		if (commandStr.substring(12).equals(" ") == false) {
+			chartoscreen(commandStr.substring(12));
+		}
 	}
 	// if (counter++ > 5000) {
 	// 	// Serial.println("OK");
