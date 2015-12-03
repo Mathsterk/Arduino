@@ -5,7 +5,7 @@
 #include <Adafruit_NeoPixel.h>
 #define PIN 52
 // String readString;	// creates the string scrolling text will be held in
-#define SERIAL_BUFFER_SIZE 256
+
 
 // MATRIX DECLARATION:
 // Parameter 1 = width of NeoPixel matrix
