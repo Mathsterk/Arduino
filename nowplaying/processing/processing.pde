@@ -52,6 +52,9 @@ boolean newTextData = true;
 String serialText;
 int oldCount = 0;
 int oldCountTwo = 0;
+boolean hilighted = false;
+String hilight;
+boolean hilightBlank = false;
 
 void setup() {
     //Create a switch that will control the frequency of text file reads.
@@ -78,6 +81,17 @@ void draw() {
             readData("C:\\Users\\Mathsterk\\Programmer\\Snip\\snip.txt");
             if (subtext.equals(prevSubtext) == false) newTextData = true;
 
+            readHilights("X:\\Processing\\fnotify.txt");
+            if (!hilightBlank) {
+                if (hilight.length() > 0) {
+                    newTextData = true;
+                    hilighted = true;
+                    println("hilighted");
+                } else {
+                    hilighted = false;
+                }
+            }
+
             /*The following switch prevents continuous reading of the text file, until
                  we are ready to read the file again. */
             mySwitch = 0;
@@ -86,8 +100,16 @@ void draw() {
             img = loadImage("C:\\Users\\Mathsterk\\Programmer\\Snip\\Snip_Artwork.jpg" /* Your image here */  );
 
 
+            if (!hilighted) {
+                getColors();
+            } else {
+                redVal = int(random(255));
+                greenVal = int(random(255));
+                blueVal = int(random(255));
+                subtext = hilight;
+                hilight = "";
+            }
 
-            getColors();
             boolean colorFull = false;
             while (!colorFull) {
                 int highest = redVal;
@@ -107,7 +129,6 @@ void draw() {
                     colorFull = true;
                 }
             }
-
 
             if (redVal < 10) redString = "00" + str(redVal);
             if (redVal < 100) redString = "0" + str(redVal);
@@ -326,4 +347,26 @@ public void getColors() {
     println("red: " + redVal + "\t green: " + greenVal + "\t\tblue: " + blueVal);
     println("hue: " + hue + "\tsaturation: " + int(map(saturation, 0, 359, 0, 100)) + "\t brigthness: " + int(map(brightness, 0, 359, 0, 100)));
     println();
+}
+
+void readHilights(String fileName) {
+    String[] hilightFile = loadStrings(fileName);
+    println("hilightread");
+    if (hilightFile.length > 0) {
+        hilightBlank = false;
+        hilight = hilightFile[0];
+        for (int i = 0; i < (hilightFile.length - 1); i++) {
+            hilightFile[i] = hilightFile[i + 1];
+        }
+        hilightFile = shorten(hilightFile);
+
+// Writes the strings to a file, each on a separate line
+        if (hilighted) {
+            println("overwrite");
+            saveStrings("X:\\Processing\\fnotify.txt", hilightFile);
+        }
+    } else {
+        hilightBlank = true;
+        println("empty hilight!");
+    }
 }
