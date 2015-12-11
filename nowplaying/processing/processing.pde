@@ -77,25 +77,30 @@ void draw() {
         if (mySwitch > 0) {
             /*The readData function can be found later in the code.
              This is the call to read a CSV file on the computer hard-drive. */
-            prevSubtext = subtext;
-            readData("C:\\Users\\Mathsterk\\Programmer\\Snip\\snip.txt");
-            if (subtext.equals(prevSubtext) == false) newTextData = true;
+
 
             readHilights("X:\\Processing\\fnotify.txt");
             if (!hilightBlank) {
-                if (hilight.length() > 0) {
+                if (hilight.length() > 5) {
                     newTextData = true;
                     hilighted = true;
                     println("hilighted");
                 } else {
                     hilighted = false;
                 }
+            } else {
+                hilighted = false;
             }
-
+            if (!hilighted) {
+                prevSubtext = subtext;
+                readData("C:\\Users\\Mathsterk\\Programmer\\Snip\\snip.txt");
+                if (subtext.equals(prevSubtext) == false) newTextData = true;
+                println("readNP");
+            }
             /*The following switch prevents continuous reading of the text file, until
                  we are ready to read the file again. */
             mySwitch = 0;
-            println("readData");
+            println("readImage");
 
             img = loadImage("C:\\Users\\Mathsterk\\Programmer\\Snip\\Snip_Artwork.jpg" /* Your image here */  );
 
@@ -107,7 +112,7 @@ void draw() {
                 greenVal = int(random(255));
                 blueVal = int(random(255));
                 subtext = hilight;
-                hilight = "";
+                hilight = " ";
             }
 
             boolean colorFull = false;
@@ -153,12 +158,13 @@ void draw() {
         }
 
         if (!newTextData) {
-            println("oldtextdata");
+
             serialText = "255,255,255  ";
             delay(1000);
             if (++oldCount > 10) {
                 mySwitch = 1;
                 oldCount = 0;
+                println("oldtextdata");
                 if (++oldCountTwo > 100) {
                     newTextData = true;
                     oldCountTwo = 0;
@@ -168,14 +174,14 @@ void draw() {
         /*Only send new data. This IF statement will allow new data to be sent to
          the arduino. */
 
-        if (newTextData) {
-            if (val.equals("OK")) {
-                OK = true;
-                OKtimeout = 0;
-            } else if (!RCV && !RDY && !ACK) {
-                OKtimeout++;
-            }
 
+        if (val.equals("OK")) {
+            OK = true;
+            OKtimeout = 0;
+        } else if (!RCV && !RDY && !ACK) {
+            OKtimeout++;
+        }
+        if (newTextData) {
             if (OK && !RCV && !RDY && !ACK) {
                 textLengthStr = String.valueOf(serialText.length());
                 myPort.write("RCV " + textLengthStr + "\n");
@@ -194,51 +200,68 @@ void draw() {
             } else if (!RCV && OK && !ACK) {
                 RDYtimeout++;
             }
-            if (val.length() >= 3) command = val.substring(0, 3);
-
-            if (command.equals("ACK") && !ACK && RDY && RCV && OK) {
-                //println(subtext);
-                if (newSerialData) {
-                    newSerialData = false;
-                    ACKval += int(val.substring(4));
-                    println("pACKval " + ACKval);
-                }
-                if (ACKval == serialText.length()) {
-                    ok = false;
-                    ACK = true;
-                    ACKtimeout = 0;
-                    ACKval = 0;
-                    println("P ACK");
-                }
-
-            } else if (!RCV && !RDY && OK) {
-                ACKtimeout++;
-            }
-
-            if (ACK) {
-                //If the text file has run out of numbers, then read the text file again in 5 seconds.
-                println("PACK ACK");
-                delay(500);
-                mySwitch = 1;
-                RCV = false;
-                RDY = false;
-                ACK = false;
-                newTextData = false;
-            }
         }
-        //if (RCVtimeout >= 100 || RCVtimeout >= 100 || RCVtimeout>= 100 || RCVtimeout >= 100) {
-        //  RCV = false;
-        //  RDY = false;
-        //  ACK = false;
-        //  OK = true;
+        // if (val.length() >= 3) command = val.substring(0, 3);
 
-        //  RCVtimeout = 0;
-        //  RDYtimeout = 0;
-        //  ACKtimeout = 0;
-        //  OKtimeout = 0;
+        // if (command.equals("ACK") /*&& !ACK && RDY && RCV && OK*/) {
+        //     //println(subtext);
+        //     if (newSerialData) {
+        //         newSerialData = false;
+        //         ACKval += int(val.substring(4));
+        //         println("pACKval " + ACKval);
+        //     }
+        //     if (ACKval == serialText.length()) {
+        //         ok = false;
+        //         ACK = true;
+        //         ACKtimeout = 0;
+        //         ACKval = 0;
+        //         println("P ACK");
+        //     }
 
-        //  println("TIMEOUT! TIMEOUT!");
-        //}
+        // } else if (!RCV && !RDY && OK) {
+        //     ACKtimeout++;
+        // }
+
+
+        if (command.equals("ACK") /*&& !ACK && RDY && RCV && OK*/) {
+            //println(subtext);
+
+            if (ACKval >= serialText.length()) {
+                ok = false;
+                ACK = true;
+                ACKtimeout = 0;
+                ACKval = 0;
+                println("P ACK");
+            }
+
+        } else if (!RCV && !RDY && OK) {
+            ACKtimeout++;
+        }
+
+        if (ACK) {
+            //If the text file has run out of numbers, then read the text file again in 5 seconds.
+            println("PACK ACK");
+            delay(500);
+            mySwitch = 1;
+            RCV = false;
+            RDY = false;
+            ACK = false;
+            newTextData = false;
+        }
+
+        // if (RCVtimeout >= 1000 || RCVtimeout >= 1000 || RCVtimeout >= 1000 || RCVtimeout >= 1000) {
+        //     RCV = false;
+        //     RDY = false;
+        //     ACK = false;
+        //     OK = true;
+
+        //     RCVtimeout = 0;
+        //     RDYtimeout = 0;
+        //     ACKtimeout = 0;
+        //     OKtimeout = 0;
+
+        //     println("TIMEOUT! TIMEOUT!");
+        // }
     }
 }
 
@@ -297,8 +320,17 @@ void serialEvent( Serial myPort) {
                 delay(100);
             }
         }
+        if (val.length() >= 3) command = val.substring(0, 3);
+        if (newSerialData && val.length() > 4) {
+            newSerialData = false;
+            ACKval += int(val.substring(4));
+            println("pACKval " + ACKval);
+        }
+
     }
 }
+
+
 
 private void extractColorFromImage() {
     img.loadPixels();

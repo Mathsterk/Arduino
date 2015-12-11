@@ -204,7 +204,7 @@ void chartoscreen(String readString)
 		// Serial.println(readString);
 		matrix.show();  //show the data stored
 
-		delay(constrain(map(readString.length(), 30, 100, 100, 30), 30, 200));  //wait a bit - sets scrolling speed
+		delay(constrain(map(readString.length(), 30, 100, 100, 40), 40, 200));  //wait a bit - sets scrolling speed
 
 	}
 	if (readString.length() == 0) {
