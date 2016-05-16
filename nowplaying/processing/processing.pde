@@ -52,6 +52,9 @@ boolean newTextData = true;
 String serialText;
 int oldCount = 0;
 int oldCountTwo = 0;
+boolean hilighted = false;
+String hilight;
+boolean hilightBlank = false;
 
 void setup() {
     //Create a switch that will control the frequency of text file reads.
@@ -74,72 +77,97 @@ void draw() {
         if (mySwitch > 0) {
             /*The readData function can be found later in the code.
              This is the call to read a CSV file on the computer hard-drive. */
-            prevSubtext = subtext;
-            readData("C:\\Users\\Mathsterk\\Programmer\\Snip\\snip.txt");
-            if (subtext.equals(prevSubtext)) newTextData = false;
-            else newTextData = true;
+
+
+            readHilights("X:\\Processing\\fnotify.txt");
+            if (!hilightBlank) {
+                if (hilight.length() > 5) {
+                    newTextData = true;
+                    hilighted = true;
+                    println("hilighted");
+                } else {
+                    hilighted = false;
+                }
+            } else {
+                hilighted = false;
+            }
+            if (!hilighted) {
+                prevSubtext = subtext;
+                readData("C:\\Users\\Mathsterk\\Programmer\\Snip\\snip.txt");
+                if (subtext.equals(prevSubtext) == false) newTextData = true;
+                println("readNP");
+            }
             /*The following switch prevents continuous reading of the text file, until
                  we are ready to read the file again. */
             mySwitch = 0;
-            println("readData");
-            if (newTextData) {
-                println("newTextData");
-                img = loadImage("C:\\Users\\Mathsterk\\Programmer\\Snip\\Snip_Artwork.jpg" /* Your image here */  );
+            println("readImage");
+
+            img = loadImage("C:\\Users\\Mathsterk\\Programmer\\Snip\\Snip_Artwork.jpg" /* Your image here */  );
 
 
-
+            if (!hilighted) {
                 getColors();
-                boolean colorFull = false;
-                while (!colorFull) {
-                    int highest = redVal;
-
-                    if (greenVal > highest) {
-                        highest = greenVal;
-                    }
-                    if (blueVal > highest) {
-                        highest = blueVal;
-                    }
-                    highest = abs(255 - highest);
-                    redVal += highest;
-                    greenVal += highest;
-                    blueVal += highest;
-
-                    if (redVal == 255 || greenVal == 255 || blueVal == 255) {
-                        colorFull = true;
-                    }
-                }
-
-
-                if (redVal < 10) redString = "00" + str(redVal);
-                if (redVal < 100) redString = "0" + str(redVal);
-                if (redVal >= 100) redString = str(redVal);
-
-                if (greenVal < 10) greenString = "00" + str(greenVal);
-                if (greenVal < 100) greenString = "0" + str(greenVal);
-                if (greenVal >= 100) greenString = str(greenVal);
-
-                if (blueVal < 10) blueString = "00" + str(blueVal);
-                if (blueVal < 100) blueString = "0" + str(blueVal);
-                if (blueVal >= 100) blueString = str(blueVal);
-
-                serialText = redString + "," + greenString + "," + blueString + " " + subtext;
-                // colorString += subtext;
-                // subtext = "";
-                // subtext = colorString;
-                // println(subtext);
-                oldCount = 0;
-                oldCountTwo = 0;
             } else {
+                redVal = int(random(255));
+                greenVal = int(random(255));
+                blueVal = int(random(255));
+                subtext = hilight;
+                hilight = " ";
+            }
+
+            boolean colorFull = false;
+            while (!colorFull) {
+                int highest = redVal;
+
+                if (greenVal > highest) {
+                    highest = greenVal;
+                }
+                if (blueVal > highest) {
+                    highest = blueVal;
+                }
+                highest = abs(255 - highest);
+                redVal += highest;
+                greenVal += highest;
+                blueVal += highest;
+
+                if (redVal == 255 || greenVal == 255 || blueVal == 255) {
+                    colorFull = true;
+                }
+            }
+
+            if (redVal < 10) redString = "00" + str(redVal);
+            if (redVal < 100) redString = "0" + str(redVal);
+            if (redVal >= 100) redString = str(redVal);
+
+            if (greenVal < 10) greenString = "00" + str(greenVal);
+            if (greenVal < 100) greenString = "0" + str(greenVal);
+            if (greenVal >= 100) greenString = str(greenVal);
+
+            if (blueVal < 10) blueString = "00" + str(blueVal);
+            if (blueVal < 100) blueString = "0" + str(blueVal);
+            if (blueVal >= 100) blueString = str(blueVal);
+
+            serialText = redString + "," + greenString + "," + blueString + " " + subtext;
+            // colorString += subtext;
+            // subtext = "";
+            // subtext = colorString;
+            // println(subtext);
+            oldCount = 0;
+            oldCountTwo = 0;
+
+        }
+
+        if (!newTextData) {
+
+            serialText = "255,255,255  ";
+            delay(1000);
+            if (++oldCount > 10) {
+                mySwitch = 1;
+                oldCount = 0;
                 println("oldtextdata");
-                serialText = "255,255,255  ";
-                delay(1000);
-                if (++oldCount > 10) {
-                    mySwitch = 1;
-                    oldCount = 0;
-                    if (++oldCountTwo > 10) {
-                        newTextData = true;
-                        oldCountTwo = 0;
-                    }
+                if (++oldCountTwo > 100) {
+                    newTextData = true;
+                    oldCountTwo = 0;
                 }
             }
         }
@@ -153,35 +181,52 @@ void draw() {
         } else if (!RCV && !RDY && !ACK) {
             OKtimeout++;
         }
-
-        if (OK && !RCV && !RDY && !ACK) {
-            textLengthStr = String.valueOf(serialText.length());
-            myPort.write("RCV " + textLengthStr + "\n");
-            println("RCV " + textLengthStr);
-            RCV = true;
-            RCVtimeout = 0;
-        } else if (OK && !RDY && !ACK) {
-            RCVtimeout++;
-        }
-
-        if (val.equals("RDY") && !RDY && RCV && !ACK && OK) {
-            myPort.write(serialText);
-            println(serialText);
-            RDY = true;
-            RDYtimeout = 0;
-        } else if (!RCV && OK && !ACK) {
-            RDYtimeout++;
-        }
-        if (val.length() >= 3) command = val.substring(0, 3);
-
-        if (command.equals("ACK") && !ACK && RDY && RCV && OK) {
-            //println(subtext);
-            if (newSerialData) {
-                newSerialData = false;
-                ACKval += int(val.substring(4));
-                println("pACKval " + ACKval);
+        if (newTextData) {
+            if (OK && !RCV && !RDY && !ACK) {
+                textLengthStr = String.valueOf(serialText.length());
+                myPort.write("RCV " + textLengthStr + "\n");
+                println("RCV " + textLengthStr);
+                RCV = true;
+                RCVtimeout = 0;
+            } else if (OK && !RDY && !ACK) {
+                RCVtimeout++;
             }
-            if (ACKval == serialText.length()) {
+
+            if (val.equals("RDY") && !RDY && RCV && !ACK && OK) {
+                myPort.write(serialText);
+                println(serialText);
+                RDY = true;
+                RDYtimeout = 0;
+            } else if (!RCV && OK && !ACK) {
+                RDYtimeout++;
+            }
+        }
+        // if (val.length() >= 3) command = val.substring(0, 3);
+
+        // if (command.equals("ACK") /*&& !ACK && RDY && RCV && OK*/) {
+        //     //println(subtext);
+        //     if (newSerialData) {
+        //         newSerialData = false;
+        //         ACKval += int(val.substring(4));
+        //         println("pACKval " + ACKval);
+        //     }
+        //     if (ACKval == serialText.length()) {
+        //         ok = false;
+        //         ACK = true;
+        //         ACKtimeout = 0;
+        //         ACKval = 0;
+        //         println("P ACK");
+        //     }
+
+        // } else if (!RCV && !RDY && OK) {
+        //     ACKtimeout++;
+        // }
+
+
+        if (command.equals("ACK") /*&& !ACK && RDY && RCV && OK*/) {
+            //println(subtext);
+
+            if (ACKval >= serialText.length()) {
                 ok = false;
                 ACK = true;
                 ACKtimeout = 0;
@@ -195,25 +240,28 @@ void draw() {
 
         if (ACK) {
             //If the text file has run out of numbers, then read the text file again in 5 seconds.
-            delay(5000);
+            println("PACK ACK");
+            delay(500);
             mySwitch = 1;
             RCV = false;
             RDY = false;
             ACK = false;
+            newTextData = false;
         }
-        //if (RCVtimeout >= 100 || RCVtimeout >= 100 || RCVtimeout>= 100 || RCVtimeout >= 100) {
-        //  RCV = false;
-        //  RDY = false;
-        //  ACK = false;
-        //  OK = true;
 
-        //  RCVtimeout = 0;
-        //  RDYtimeout = 0;
-        //  ACKtimeout = 0;
-        //  OKtimeout = 0;
+        // if (RCVtimeout >= 1000 || RCVtimeout >= 1000 || RCVtimeout >= 1000 || RCVtimeout >= 1000) {
+        //     RCV = false;
+        //     RDY = false;
+        //     ACK = false;
+        //     OK = true;
 
-        //  println("TIMEOUT! TIMEOUT!");
-        //}
+        //     RCVtimeout = 0;
+        //     RDYtimeout = 0;
+        //     ACKtimeout = 0;
+        //     OKtimeout = 0;
+
+        //     println("TIMEOUT! TIMEOUT!");
+        // }
     }
 }
 
@@ -272,8 +320,17 @@ void serialEvent( Serial myPort) {
                 delay(100);
             }
         }
+        if (val.length() >= 3) command = val.substring(0, 3);
+        if (newSerialData && val.length() > 4) {
+            newSerialData = false;
+            ACKval += int(val.substring(4));
+            println("pACKval " + ACKval);
+        }
+
     }
 }
+
+
 
 private void extractColorFromImage() {
     img.loadPixels();
@@ -322,4 +379,26 @@ public void getColors() {
     println("red: " + redVal + "\t green: " + greenVal + "\t\tblue: " + blueVal);
     println("hue: " + hue + "\tsaturation: " + int(map(saturation, 0, 359, 0, 100)) + "\t brigthness: " + int(map(brightness, 0, 359, 0, 100)));
     println();
+}
+
+void readHilights(String fileName) {
+    String[] hilightFile = loadStrings(fileName);
+    println("hilightread");
+    if (hilightFile.length > 0) {
+        hilightBlank = false;
+        hilight = hilightFile[0];
+        for (int i = 0; i < (hilightFile.length - 1); i++) {
+            hilightFile[i] = hilightFile[i + 1];
+        }
+        hilightFile = shorten(hilightFile);
+
+// Writes the strings to a file, each on a separate line
+        if (hilighted) {
+            println("overwrite");
+            saveStrings("X:\\Processing\\fnotify.txt", hilightFile);
+        }
+    } else {
+        hilightBlank = true;
+        println("empty hilight!");
+    }
 }
