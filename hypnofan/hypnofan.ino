@@ -10,13 +10,18 @@ int fanCount = 0;
 void setup() {
 
 // setter opp hva pinsene brukes til, om de skal drive noe eller bare leses ifra
+// pin 2 skal være INPUT
   pinMode(2, INPUT);
+// pin 13 skal være et output, den kan være enten lav eller høy
   pinMode(13, OUTPUT);
   pinMode(9, OUTPUT);
   pinMode(10, OUTPUT);
   pinMode(11, OUTPUT);
 
-  // setter opp en interrupt (når noe skjer, uansett hva arduinoen holder på med, kjør denne funksjonen)
+  // setter opp en interrupt (når noe skjer, uansett hva arduinoen holder på med, kjør funksjonen fantrip)
+  // digitalPinToInterrupt() oversetter pin 2 til hvilken interrupt
+  // fantrip er funksjonen
+  // FALLING er hva den skal trigge på, nå er det når pin 2 trekkes til jord
   attachInterrupt(digitalPinToInterrupt(2), fantrip, FALLING);
 // ut av løkka
 }
