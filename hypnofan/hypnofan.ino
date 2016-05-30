@@ -1,6 +1,5 @@
 unsigned long ticktime = 0;
 unsigned long currentMicros = 0;
-unsigned long shift = 0;
 
 
 int fancolor = 0;
@@ -33,6 +32,7 @@ void loop() {
     fanCount = 0;
   }
   // For a set of NeoPixels the first NeoPixel is 0, second is 1, all the way up to the count of pixels minus one.
+
   currentMicros = micros();
 
   // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
