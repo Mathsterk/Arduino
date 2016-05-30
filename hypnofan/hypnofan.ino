@@ -1,8 +1,12 @@
 // setter noen globale variabler
+// unsigned sier at vi ikke trenger et negativt tall
+// long er en datatype (32 bit integer(heltall), så 0 til 4,294,967,295)
+
 unsigned long ticktime = 0;
 unsigned long currentMicros = 0;
 unsigned long shift = 0;
 
+// int er integer, en integer er et heltall, (på en arduino er en integer -32,768 til 32,767  med andre ord, 16 bit totalt, 1 bit brukes til å si om tallet er positivt eller negativt, og 15 bit brukes til å beskrive tallet)
 int fanColor = 0;
 int fanCount = 0;
 
