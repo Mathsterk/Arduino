@@ -50,10 +50,11 @@ Serial Serial;
 Serial myPort;
 float val;
 
-float[] peak = new float[200];
+float[] peak = new float[30];
 float ledScale = 2;
 
 int serialIt = 0;
+int mouseIt = 0;
 
 
 void setup()
@@ -75,7 +76,7 @@ void setup()
   fftLin = new FFT( jingle.bufferSize(), jingle.sampleRate() );
 
   // calculate the averages by grouping frequency bands linearly. use 30 averages.
-  fftLin.linAverages( 22 );
+  fftLin.linAverages( 20 );
 
   // create an FFT object for calculating logarithmically spaced averages
   fftLog = new FFT( jingle.bufferSize(), jingle.sampleRate() );
@@ -115,21 +116,23 @@ void draw()
     {
       // if the mouse is over the spectrum value we're about to draw
       // set the stroke color to red
-      if ( i == mouseX )
+      if ( i * 2== mouseX )
       {
         centerFrequency = fftLin.indexToFreq(i);
         stroke(255, 0, 0);
         fullVal = fftLin.getBand(i)*spectrumScale;
+        mouseIt = i;
       } else
       {
         stroke(255);
       }
-      line(i, height3, i, height3 - fftLin.getBand(i)*spectrumScale);
+      line(i * 2, height3, i * 2, height3 - fftLin.getBand(i)*spectrumScale);
     }
 
     fill(255, 128);
-    text("Spectrum Center Frequency: " + centerFrequency, 5, height3 - 25);
-    text("Spectrum Value: " + fullVal, 5, height3 - 50);
+    text("Spectrum Center Frequency: " + centerFrequency, 5, height3 - 75);
+    text("Spectrum Value: " + fullVal, 5, height3 - 100);
+    text("Iteration: " + mouseIt, 5, height3 - 125);
   }
 
   // no more outline, we'll be doing filled rectangles from now
@@ -150,8 +153,9 @@ void draw()
         centerFrequency = fftLin.getAverageCenterFrequency(i);
 
         fill(255, 128);
-        text("Linear Average Center Frequency: " + centerFrequency, 5, height23 - 25);
-        text("Spectrum Value: " + fftLin.getBand(i)*spectrumScale, 5, height23 - 50);
+        text("Linear Average Center Frequency: " + centerFrequency, 5, height23 - 75);
+        text("Spectrum Value: " + fftLin.getBand(i)*spectrumScale, 5, height23 - 100);
+        text("Iteration: " + i, 5, height23 - 125);
         fill(255, 0, 0);
       } else
       {
@@ -187,30 +191,45 @@ void draw()
 
       // if the mouse is inside of this average's rectangle
       // print the center frequency and set the fill color to red
-      if ( mouseX >= xl && mouseX < xr )
+      if ( mouseX >= xl * 2 && mouseX < xr * 2 )
       {
         fill(255, 128);
-        text("Logarithmic Average Center Frequency: " + centerFrequency, 5, height - 25);
-        text("Spectrum Value: " + fftLog.getBand(i)*spectrumScale, 5, height - 50);
+        text("Logarithmic Average Center Frequency: " + centerFrequency, 5, height - 75);
+        text("Spectrum Value: " + fftLog.getBand(i)*spectrumScale, 5, height - 100);
+        text("Iteration: " + i, 5, height - 125);
         fill(255, 0, 0);
       } else
       {
         fill(255);
       }
       // draw a rectangle for each average, multiply the value by spectrumScale so we can see it better
-      rect( xl, height, xr, height - fftLog.getAvg(i)*spectrumScale );
+      rect( xl * 2, height, xr * 2, height - fftLog.getAvg(i)*spectrumScale );
 
       peak[i] = fftLog.getBand(i)*ledScale;
     }
   }
-  
-  for(int peakIt = 0; peakIt < peak.length; peakIt++) {
-    // stuff
-  }
 
-  if (serialIt++ > 3) {
+  for (int peakIt = 0; peakIt < peak.length - 1; peakIt++) {
+    if (peak[peakIt] < peak[peakIt + 1]) {
+      peak[peakIt] = peak[peakIt + 1];
+    }
+  }
+  
+  peak[0] = peak[0] * 1.00;
+  peak[1] = peak[1] * 1.00;
+  peak[2] = peak[2] * 1.00;
+
+  peak[3] = peak[3] * 0.40;
+  peak[4] = peak[4] * 0.40;
+  peak[5] = peak[5] * 0.40;
+
+  peak[6] = peak[6] * 1.00;
+  peak[7] = peak[7] * 1.00;
+  peak[8] = peak[8] * 1.00;
+
+  if (serialIt++ > 0) {
     serialIt = 0;
-    Serial.write(int(peak[0]) + "," + int(peak[1]) + "," + int(peak[2]) + "," + int(peak[3]) + "," + int(peak[4]) + "," + int(peak[5]) + "," + int(peak[6]) + "," + int(peak[7]) + "," + int(peak[8]) + "\n");
+    Serial.write(int(peak[0]) + "," + int(peak[3]) + "," + int(peak[6]) + "," + int(peak[1]) + "," + int(peak[4]) + "," + int(peak[7]) + "," + int(peak[2]) + "," + int(peak[5]) + "," + int(peak[8]) + "\n");
     println(peak[0] + "\t\t" + peak[1] + "\t\t" + peak[2] + "\t\t" + peak[3] + "\t\t" + peak[4] + "\t\t" + peak[5] + "\t\t" + peak[6] + "\t\t" + peak[7] + "\t\t" + peak[8]);
   }
 
