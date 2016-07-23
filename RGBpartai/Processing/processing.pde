@@ -243,7 +243,9 @@ void draw()
   }
   
   println(mpArrayMax);
-  text("Max: " + mpArrayM, width - 150, height3 - 300);
+      fill(255, 128);
+  text("Max: " + mpArrayMax, width - 190, height3 - 275);
+  text("Samples Since: " + mpArrayMaxSamAgo, width - 190, height3 - 250);
 
   peak[0] = peak[0] * 1.00;
   peak[1] = peak[1] * 1.00;
