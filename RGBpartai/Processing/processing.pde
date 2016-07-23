@@ -205,7 +205,7 @@ void draw()
       // draw a rectangle for each average, multiply the value by spectrumScale so we can see it better
       rect( xl * 2, height, xr * 2, height - fftLog.getAvg(i)*spectrumScale );
 
-      peak[i] = fftLog.getBand(i)*ledScale;
+      peak[i] = constrain(fftLog.getBand(i)*ledScale, 0, 255);
     }
   }
 
