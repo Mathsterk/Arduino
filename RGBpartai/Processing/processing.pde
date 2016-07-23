@@ -1,9 +1,9 @@
-import processing.serial.*;
+import processing.serial.*; //<>//
 import java.io.*;
 import processing.core.PApplet;
 import processing.core.PImage;
 
-int mySwitch = 0;
+int mySwitch = 1;
 int counter = 0;
 String subtext;
 Serial myPort;
@@ -49,7 +49,7 @@ String blueString;
 
 String prevSubtext;
 boolean newTextData = true;
-String serialText;
+String serialText = "0,0,0,0,0,0,0,0,0";
 int oldCount = 0;
 int oldCountTwo = 0;
 boolean hilighted = false;
@@ -120,93 +120,93 @@ void setup() {
 
 void draw() {
   if (firstContact) {
-    if (mySwitch > 0) {
-      /*The readData function can be found later in the code.
-       This is the call to read a CSV file on the computer hard-drive. */
+
+    /*The readData function can be found later in the code.
+     This is the call to read a CSV file on the computer hard-drive. */
 
 
 
-      /*The following switch prevents continuous reading of the text file, until
-       we are ready to read the file again. */
-      mySwitch = 0;
+    /*The following switch prevents continuous reading of the text file, until
+     we are ready to read the file again. */
+    mySwitch = 0;
 
 
 
 
 
-      for (int i=0; i < 30; i++) {
-        peak = (fftLog.getAvg(i));
-        maxPeak = peak + maxPeak;
-      }
+    for (int i=0; i < 30; i++) {
+      peak = (fftLog.getAvg(i));
+      maxPeak = peak + maxPeak;
+    }
 
-      int tempJ = round(maxPeak);
-      if (boop) {
-        if (tempJ == 0) {
-          if (tempJloop > 300) {
-            tempJloop = 0;
-            boop = false;
-            for (int i=5; i >= 5; i--) {
-              //myPort.write(i);
-            }
-          } else {
-            tempJloop++;
+    int tempJ = round(maxPeak);
+    if (boop) {
+      if (tempJ == 0) {
+        if (tempJloop > 300) {
+          tempJloop = 0;
+          boop = false;
+          for (int i=5; i >= 5; i--) {
+            //myPort.write(i);
           }
+        } else {
+          tempJloop++;
         }
       }
+    }
 
 
-      if (volPeak <= 0) volPeak = 10;
+    if (volPeak <= 0) volPeak = 10;
 
-      if (tempJ != tempJ2) {
-        tempJ3 = constrain(round(map(tempJ, 0, volPeak, 0, 255)), 0, 255);
-        println(tempJ + "\t" + tempJ3 + "\t" + volPeak);
-        
+    if (tempJ != tempJ2) {
+      tempJ3 = constrain(round(map(tempJ, 0, volPeak, 0, 255)), 0, 255);
+      //println(tempJ + "\t" + tempJ3 + "\t" + volPeak);
+      if (mySwitch > 0) {
         //myPort.write(tempJ3);
         newSerialData = true;
-        serialText = str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3);        
-        
-        tempJ2 = tempJ;
-        boop = true;
+        serialText = str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3) + "," + str(tempJ3);
       }
-      maxPeak = 0;
-
-      if (tempJ >= volPeak) {
-        volPeak = tempJ;
-      } else {  
-        if (volPeakCount >= 5 && volPeak > 127) {
-          volPeakCount = 0;
-          volPeak--;
-          if (abs(volPeak - tempJ) >= 1000) volPeak -= 1;
-          if (abs(volPeak - tempJ) >= 1500) volPeak -= 2;
-          if (abs(volPeak - tempJ) >= 2000) volPeak -= 5;
-        } else {
-          volPeakCount++;
-        }
-      }
-
-
-
-
-      fftLog.forward(microphone.mix);
-
-      background(30);
-      rect(x, y, w, h);
-      fill(255);
-      if (mousePressed) {
-        if (mouseX>x && mouseX <x+w && mouseY>y && mouseY <y+h) {
-          volPeak = 16;
-          println("VOLRESET !!!           @@@@");
-          fill(0);
-          //do stuff
-        }
-      } 
-
-
-      oldCount = 0;
-      oldCountTwo = 0;
+      tempJ2 = tempJ;
+      boop = true;
     }
-    
-   
+    maxPeak = 0;
+
+    if (tempJ >= volPeak) {
+      volPeak = tempJ;
+    } else {  
+      if (volPeakCount >= 5 && volPeak > 127) {
+        volPeakCount = 0;
+        volPeak--;
+        if (abs(volPeak - tempJ) >= 1000) volPeak -= 1;
+        if (abs(volPeak - tempJ) >= 1500) volPeak -= 2;
+        if (abs(volPeak - tempJ) >= 2000) volPeak -= 5;
+      } else {
+        volPeakCount++;
+      }
+    }
+
+
+
+
+    fftLog.forward(microphone.mix);
+
+    background(30);
+    rect(x, y, w, h);
+    fill(255);
+    if (mousePressed) {
+      if (mouseX>x && mouseX <x+w && mouseY>y && mouseY <y+h) {
+        volPeak = 16;
+        println("VOLRESET !!!           @@@@");
+        fill(0);
+        //do stuff
+      }
+    } 
+
+
+    oldCount = 0;
+    oldCountTwo = 0;
+
+
+
 
     //if (!newTextData) {
 
@@ -222,7 +222,7 @@ void draw() {
     //    }
     //  }
     //}
-    
+
     /*Only send new data. This IF statement will allow new data to be sent to
      the arduino. */
 
@@ -252,9 +252,6 @@ void draw() {
       } else if (!RCV && OK && !ACK) {
         RDYtimeout++;
       }
-      
-      mySwitch = 1;
-      
     }
     // if (val.length() >= 3) command = val.substring(0, 3);
 
