@@ -22,9 +22,9 @@
  * <p>
  * For more information about Minim and additional features, visit http://code.compartmental.net/minim/
  */
- 
- // PROCESSING, YOU FUCKING ASSHAT, START SAVING WHEN YOU'RE SUPPOSED TO....
- 
+
+// PROCESSING, YOU FUCKING ASSHAT, START SAVING WHEN YOU'RE SUPPOSED TO....
+
 import processing.serial.*;
 
 import ddf.minim.analysis.*;
@@ -87,13 +87,11 @@ void setup()
 
   rectMode(CORNERS);
   //font = loadFont("ArialMT-12.vlw");
-  
-  
+
+
   String portName = Serial.list()[0];
   Serial = new Serial(this, portName, 4000000);
   delay(1000);
-  
-  
 }
 
 void draw()
@@ -201,17 +199,22 @@ void draw()
       }
       // draw a rectangle for each average, multiply the value by spectrumScale so we can see it better
       rect( xl, height, xr, height - fftLog.getAvg(i)*spectrumScale );
-      
+
       peak[i] = fftLog.getBand(i)*ledScale;
     }
   }
   
-  if(serialIt++ > 3) {
+  for(int peakIt = 0; peakIt < peak.length; peakIt++) {
+    // stuff
+  }
+
+  if (serialIt++ > 3) {
     serialIt = 0;
-    Serial.write(peak[0] + "," + peak[1] + "," + peak[2] + "," + peak[3] + "," + peak[4] + "," + peak[5] + "," + peak[6] + "," + peak[7] + "," + peak[8]);
-  println(peak[0] + "\t\t" + peak[1] + "\t\t" + peak[2] + "\t\t" + peak[3] + "\t\t" + peak[4] + "\t\t" + peak[5] + "\t\t" + peak[6] + "\t\t" + peak[7] + "\t\t" + peak[8]);
-  
-    if ( Serial.available() > 0) {  // If data is available,
+    Serial.write(int(peak[0]) + "," + int(peak[1]) + "," + int(peak[2]) + "," + int(peak[3]) + "," + int(peak[4]) + "," + int(peak[5]) + "," + int(peak[6]) + "," + int(peak[7]) + "," + int(peak[8]) + "\n");
+    println(peak[0] + "\t\t" + peak[1] + "\t\t" + peak[2] + "\t\t" + peak[3] + "\t\t" + peak[4] + "\t\t" + peak[5] + "\t\t" + peak[6] + "\t\t" + peak[7] + "\t\t" + peak[8]);
+  }
+
+  if ( Serial.available() > 0) {  // If data is available,
     char val = char(Serial.read());         // read it and store it in val 
     print(val); // echo everying but time request
   }
