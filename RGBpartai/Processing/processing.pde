@@ -55,6 +55,8 @@ float ledScale = 2;
 
 int serialIt = 0;
 int mouseIt = 0;
+float maxPeak = 0;
+int peakZero;
 
 
 void setup()
@@ -208,26 +210,40 @@ void draw()
       peak[i] = constrain(fftLog.getBand(i)*ledScale, 0, 255);
     }
   }
+  
+  maxPeak = 0;
 
   for (int peakIt = 0; peakIt < peak.length - 1; peakIt++) {
+    if (peak[peakIt] > maxPeak) maxPeak = peak[peakIt];
     if (peak[peakIt] < peak[peakIt + 1]) {
       peak[peakIt] = peak[peakIt + 1];
     }
   }
+
+  for(int counter = 0; counter < maxPeakArray.length; counter) {
   
+  }
+
   peak[0] = peak[0] * 1.00;
   peak[1] = peak[1] * 1.00;
   peak[2] = peak[2] * 1.00;
 
-  peak[3] = peak[3] * 0.40;
-  peak[4] = peak[4] * 0.40;
-  peak[5] = peak[5] * 0.40;
+  peak[3] = peak[3] * 0.50;
+  peak[4] = peak[4] * 0.50;
+  peak[5] = peak[5] * 0.50;
 
   peak[6] = peak[6] * 1.00;
   peak[7] = peak[7] * 1.00;
   peak[8] = peak[8] * 1.00;
 
-  if (serialIt++ > 0) {
+  if (maxPeak < 1) {
+    peakZero++;
+  } else { 
+    peakZero = 0;
+  }
+  
+
+  if (serialIt++ > 0 && peakZero < 200) {
     serialIt = 0;
     Serial.write(int(peak[0]) + "," + int(peak[3]) + "," + int(peak[6]) + "," + int(peak[1]) + "," + int(peak[4]) + "," + int(peak[7]) + "," + int(peak[2]) + "," + int(peak[5]) + "," + int(peak[8]) + "\n");
     println(peak[0] + "\t\t" + peak[1] + "\t\t" + peak[2] + "\t\t" + peak[3] + "\t\t" + peak[4] + "\t\t" + peak[5] + "\t\t" + peak[6] + "\t\t" + peak[7] + "\t\t" + peak[8]);
