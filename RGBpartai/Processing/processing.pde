@@ -49,13 +49,16 @@ float fullVal;
 Serial Serial;
 Serial myPort;
 float val;
-float maxPeak;
 
+float[] peak = new float[200];
+float ledScale = 2;
+
+int serialIt = 0;
 
 
 void setup()
 {
-  size(512, 960);
+  size(1024, 960);
   height3 = height/3;
   height23 = 2*height/3;
 
@@ -72,7 +75,7 @@ void setup()
   fftLin = new FFT( jingle.bufferSize(), jingle.sampleRate() );
 
   // calculate the averages by grouping frequency bands linearly. use 30 averages.
-  fftLin.linAverages( 8 );
+  fftLin.linAverages( 22 );
 
   // create an FFT object for calculating logarithmically spaced averages
   fftLog = new FFT( jingle.bufferSize(), jingle.sampleRate() );
@@ -80,7 +83,7 @@ void setup()
   // calculate averages based on a miminum octave width of 22 Hz
   // split each octave into three bands
   // this should result in 30 averages
-  fftLog.logAverages( 22, 1 );
+  fftLog.logAverages( 22, 2 );
 
   rectMode(CORNERS);
   //font = loadFont("ArialMT-12.vlw");
@@ -199,10 +202,14 @@ void draw()
       // draw a rectangle for each average, multiply the value by spectrumScale so we can see it better
       rect( xl, height, xr, height - fftLog.getAvg(i)*spectrumScale );
       
-      if (fftLog.getBand(i)*spectrumScale > maxPeak) maxPeak = fftLog.getBand(i)*spectrumScale;
+      peak[i] = fftLog.getBand(i)*ledScale;
     }
   }
   
+  if(serialIt++ > 3) {
+    serialIt = 0;
+    Serial.write(peak[0] + "," + peak[1] + "," + peak[2] + "," + peak[3] + "," + peak[4] + "," + peak[5] + "," + peak[6] + "," + peak[7] + "," + peak[8]);
+  println(peak[0] + "\t\t" + peak[1] + "\t\t" + peak[2] + "\t\t" + peak[3] + "\t\t" + peak[4] + "\t\t" + peak[5] + "\t\t" + peak[6] + "\t\t" + peak[7] + "\t\t" + peak[8]);
   
     if ( Serial.available() > 0) {  // If data is available,
     char val = char(Serial.read());         // read it and store it in val 
