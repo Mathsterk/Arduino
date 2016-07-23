@@ -23,6 +23,8 @@
  * For more information about Minim and additional features, visit http://code.compartmental.net/minim/
  */
  
+ // PROCESSING, YOU FUCKING ASSHAT, START SAVING WHEN YOU'RE SUPPOSED TO....
+ 
 import processing.serial.*;
 
 import ddf.minim.analysis.*;
