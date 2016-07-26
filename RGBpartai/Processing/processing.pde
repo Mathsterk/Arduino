@@ -230,7 +230,7 @@ void draw()
   }
 
   mpArrayMax = 0;
-  maxPeakArray[0] = maxPeak;
+  maxPeakArray[0] = max(maxPeak, 127);
 
   for (int counter = 0; counter < maxPeakArray.length; counter++) {
     if (maxPeakArray[counter] > mpArrayMax) {
@@ -241,10 +241,10 @@ void draw()
   for (int counter = 0; counter < peak.length; counter++) {
     map(peak[counter], 0, mpArrayMax, 0, 255);
   }
-  
-  println(mpArrayMax);
-      fill(255, 128);
-  text("Max: " + mpArrayMax, width - 190, height3 - 275);
+
+  //println(mpArrayMax);
+  fill(255, 128);
+  text("Max: " + max(maxPeakArray), width - 190, height3 - 275);
   text("Samples Since: " + mpArrayMaxSamAgo, width - 190, height3 - 250);
 
   peak[0] = peak[0] * 1.00;
@@ -305,4 +305,14 @@ void stop()
   delay(10);
   minim.stop();
   super.stop();
+}
+
+void mouseClicked() {
+  if(mouseX > width - 190 && mouseY > height3 - 275 && mouseY < height3 - 245)
+  println("RESET");
+  for (int counter = 0; counter < maxPeakArray.length; counter++) {
+    maxPeakArray[counter] = 0;
+  }
+  //println("mouseX: " + mouseX + " mouseY: " + mouseY);
+  //println("targetX: " + (width - 190) + " targetY: " + (height3 - 245) + " OR " + (height3 - 275));
 }
