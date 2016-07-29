@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * An FFT object is used to convert an audio signal into its frequency domain representation. This representation
  * lets you see how much of each frequency is contained in an audio signal. Sometimes you might not want to 
@@ -32,7 +31,7 @@ import ddf.minim.analysis.*;
 import ddf.minim.*;
 
 Minim minim;  
-AudioInput jingle;
+AudioInput lineIn;
 FFT fftLin;
 FFT fftLog;
 
@@ -52,12 +51,15 @@ Serial myPort;
 float val;
 
 float[] peak = new float[30];
+float[] maxPeakArray = new float[3600];
 float ledScale = 2;
 
 int serialIt = 0;
 int mouseIt = 0;
 float maxPeak = 0;
 int peakZero;
+float mpArrayMax;
+int mpArrayMaxSamAgo;
 
 
 void setup()
@@ -67,22 +69,22 @@ void setup()
   height23 = 2*height/3;
 
   minim = new Minim(this);
-  jingle = minim.getLineIn(Minim.STEREO);
+  lineIn = minim.getLineIn(Minim.STEREO);
 
   // loop the file
-  //jingle.loop();
+  //lineIn.loop();
 
-  // create an FFT object that has a time-domain buffer the same size as jingle's sample buffer
+  // create an FFT object that has a time-domain buffer the same size as lineIn's sample buffer
   // note that this needs to be a power of two 
   // and that it means the size of the spectrum will be 1024. 
   // see the online tutorial for more info.
-  fftLin = new FFT( jingle.bufferSize(), jingle.sampleRate() );
+  fftLin = new FFT( lineIn.bufferSize(), lineIn.sampleRate() );
 
   // calculate the averages by grouping frequency bands linearly. use 30 averages.
   fftLin.linAverages( 20 );
 
   // create an FFT object for calculating logarithmically spaced averages
-  fftLog = new FFT( jingle.bufferSize(), jingle.sampleRate() );
+  fftLog = new FFT( lineIn.bufferSize(), lineIn.sampleRate() );
 
   // calculate averages based on a miminum octave width of 22 Hz
   // split each octave into three bands
@@ -95,6 +97,7 @@ void setup()
 
   String portName = Serial.list()[0];
   Serial = new Serial(this, portName, 4000000);
+  frameRate(60);
   delay(1000);
 }
 
@@ -107,10 +110,10 @@ void draw()
 
   float centerFrequency = 0;
 
-  // perform a forward FFT on the samples in jingle's mix buffer
-  // note that if jingle were a MONO file, this would be the same as using jingle.left or jingle.right
-  fftLin.forward( jingle.mix );
-  fftLog.forward( jingle.mix );
+  // perform a forward FFT on the samples in lineIn's mix buffer
+  // note that if lineIn were a MONO file, this would be the same as using lineIn.left or lineIn.right
+  fftLin.forward( lineIn.mix );
+  fftLog.forward( lineIn.mix );
 
   // draw the full spectrum
   {
@@ -137,6 +140,7 @@ void draw()
     text("Spectrum Value: " + fullVal, 5, height3 - 100);
     text("Iteration: " + mouseIt, 5, height3 - 125);
   }
+  text("FPS: " + frameRate, width - 150, height3 - 300);
 
   // no more outline, we'll be doing filled rectangles from now
   noStroke();
@@ -208,11 +212,15 @@ void draw()
       // draw a rectangle for each average, multiply the value by spectrumScale so we can see it better
       rect( xl * 2, height, xr * 2, height - fftLog.getAvg(i)*spectrumScale );
 
-      peak[i] = constrain(fftLog.getBand(i)*ledScale, 0, 255);
+      peak[i] = fftLog.getBand(i)*ledScale;
     }
   }
-  
+
   maxPeak = 0;
+
+  for (int counter = maxPeakArray.length - 1; counter > 0; counter--) {
+    maxPeakArray[counter] = maxPeakArray[counter - 1];
+  }
 
   for (int peakIt = 0; peakIt < peak.length - 1; peakIt++) {
     if (peak[peakIt] > maxPeak) maxPeak = peak[peakIt];
@@ -221,31 +229,62 @@ void draw()
     }
   }
 
-  for(int counter = 0; counter < maxPeakArray.length; counter) {
-  
+  mpArrayMax = 0;
+  maxPeakArray[0] = max(maxPeak, 127);
+
+  for (int counter = 0; counter < maxPeakArray.length; counter++) {
+    if (maxPeakArray[counter] > mpArrayMax) {
+      mpArrayMax = maxPeakArray[counter];
+      mpArrayMaxSamAgo = counter;
+    }
   }
+  for (int counter = 0; counter < peak.length; counter++) {
+    map(peak[counter], 0, mpArrayMax, 0, 255);
+  }
+
+  //println(mpArrayMax);
+  fill(255, 128);
+  text("Max: " + max(maxPeakArray), width - 190, height3 - 275);
+  text("Samples Since: " + mpArrayMaxSamAgo, width - 190, height3 - 250);
 
   peak[0] = peak[0] * 1.00;
   peak[1] = peak[1] * 1.00;
   peak[2] = peak[2] * 1.00;
 
-  peak[3] = peak[3] * 0.50;
-  peak[4] = peak[4] * 0.50;
-  peak[5] = peak[5] * 0.50;
+  peak[3] = peak[3] * 1;
+  peak[4] = peak[4] * 1;
+  peak[5] = peak[5] * 1;
 
   peak[6] = peak[6] * 1.00;
-  peak[7] = peak[7] * 1.00;
-  peak[8] = peak[8] * 1.00;
+  peak[7] = peak[7] * 1.25;
+  peak[8] = peak[8] * 1.25;
+
+  //peak[0] = peak[0] * 0;
+  //peak[1] = peak[1] * 0;
+  //peak[2] = peak[2] * 0;
+
+  //peak[3] = peak[3] * 0;
+  //peak[4] = peak[4] * 0;
+  //peak[5] = peak[5] * 0;
+
+  //  peak[6] = peak[6] * 1.00;
+  //  peak[7] = peak[7] * 1.25;
+  //peak[8] = peak[8] * 1.25;
 
   if (maxPeak < 1) {
     peakZero++;
   } else { 
     peakZero = 0;
   }
-  
 
-  if (serialIt++ > 0 && peakZero < 200) {
-    serialIt = 0;
+
+  //if (serialIt++ > 0 && peakZero < 200) {
+  // serialIt = 0;
+  // Serial.write(int(peak[0]) + "," + int(peak[3]) + "," + int(peak[6]) + "," + int(peak[1]) + "," + int(peak[4]) + "," + int(peak[7]) + "," + int(peak[2]) + "," + int(peak[5]) + "," + int(peak[8]) + "\n");
+  // println(peak[0] + "\t\t" + peak[1] + "\t\t" + peak[2] + "\t\t" + peak[3] + "\t\t" + peak[4] + "\t\t" + peak[5] + "\t\t" + peak[6] + "\t\t" + peak[7] + "\t\t" + peak[8]);
+  //}
+
+  if (peakZero < 200) {
     Serial.write(int(peak[0]) + "," + int(peak[3]) + "," + int(peak[6]) + "," + int(peak[1]) + "," + int(peak[4]) + "," + int(peak[7]) + "," + int(peak[2]) + "," + int(peak[5]) + "," + int(peak[8]) + "\n");
     println(peak[0] + "\t\t" + peak[1] + "\t\t" + peak[2] + "\t\t" + peak[3] + "\t\t" + peak[4] + "\t\t" + peak[5] + "\t\t" + peak[6] + "\t\t" + peak[7] + "\t\t" + peak[8]);
   }
@@ -259,249 +298,21 @@ void draw()
 void stop()
 {
   // always close Minim audio classes when you finish with them
-  jingle.close();
+  lineIn.close();
 
   // always stop Minim before exiting
   //Serial.write("0,0,0,0,0,0,0,0,0\n");
   delay(10);
   minim.stop();
   super.stop();
-=======
-import processing.serial.*;
-import java.io.*;
-import processing.core.PApplet;
-import processing.core.PImage;
-
-int mySwitch = 0;
-int counter = 0;
-String subtext;
-Serial myPort;
-boolean pong = false;
-String val;
-boolean firstContact = false;
-int textlength[];
-boolean ok = false;
-String textLengthStr;
-
-PImage img;
-float hue;
-static final int hueRange = 360;
-float saturation;
-float brightness;
-
-int redVal = 0;
-int greenVal = 0;
-int blueVal = 0;
-
-boolean RCV = false;
-boolean RDY = false;
-boolean ACK = false;
-boolean OK = false;
-
-int RCVtimeout = 0;
-int RDYtimeout = 0;
-int ACKtimeout = 0;
-int OKtimeout = 0;
-
-int textLength[];
-
-boolean newSerialData = false;
-
-int ACKval = 0;
-
-
-String command = "";
-
-String redString;
-String greenString;
-String blueString;
-
-String prevSubtext;
-boolean newTextData = true;
-String serialText;
-int oldCount = 0;
-int oldCountTwo = 0;
-boolean hilighted = false;
-String hilight;
-boolean hilightBlank = false;
-
-void setup() {
-    //Create a switch that will control the frequency of text file reads.
-    //When mySwitch=1, the program is setup to read the text file.
-    //This is turned off when mySwitch = 0
-    mySwitch = 1;
-
-    //Open the serial port for communication with the Arduino
-    //Make sure the COM port is correct
-    myPort = new Serial(this, "COM6", 115200);
-    myPort.bufferUntil('\n');
-
-    size(640, 720);
-    background(0);
-    colorMode(HSB, (hueRange - 1));
 }
 
-void draw() {
-    if (firstContact) {
-        if (mySwitch > 0) {
-            /*The readData function can be found later in the code.
-             This is the call to read a CSV file on the computer hard-drive. */
-
-
-           
-            /*The following switch prevents continuous reading of the text file, until
-                 we are ready to read the file again. */
-            mySwitch = 0;
-
-
-serialText = "0,10,20,0,10,20,0,10,20";
-
-
-            oldCount = 0;
-            oldCountTwo = 0;
-
-        }
-
-        if (!newTextData) {
-
-            serialText = " ";
-            delay(1000);
-            if (++oldCount > 10) {
-                mySwitch = 1;
-                oldCount = 0;
-                println("oldtextdata");
-                if (++oldCountTwo > 100) {
-                    newTextData = true;
-                    oldCountTwo = 0;
-                }
-            }
-        }
-        /*Only send new data. This IF statement will allow new data to be sent to
-         the arduino. */
-
-
-        if (val.equals("OK")) {
-            OK = true;
-            OKtimeout = 0;
-        } else if (!RCV && !RDY && !ACK) {
-            OKtimeout++;
-        }
-        if (newTextData) {
-            if (OK && !RCV && !RDY && !ACK) {
-                textLengthStr = String.valueOf(serialText.length());
-                myPort.write("RCV " + textLengthStr + "\n");
-                println("RCV " + textLengthStr);
-                RCV = true;
-                RCVtimeout = 0;
-            } else if (OK && !RDY && !ACK) {
-                RCVtimeout++;
-            }
-
-            if (val.equals("RDY") && !RDY && RCV && !ACK && OK) {
-                myPort.write(serialText);
-                println(serialText);
-                RDY = true;
-                RDYtimeout = 0;
-            } else if (!RCV && OK && !ACK) {
-                RDYtimeout++;
-            }
-        }
-        // if (val.length() >= 3) command = val.substring(0, 3);
-
-        // if (command.equals("ACK") /*&& !ACK && RDY && RCV && OK*/) {
-        //     //println(subtext);
-        //     if (newSerialData) {
-        //         newSerialData = false;
-        //         ACKval += int(val.substring(4));
-        //         println("pACKval " + ACKval);
-        //     }
-        //     if (ACKval == serialText.length()) {
-        //         ok = false;
-        //         ACK = true;
-        //         ACKtimeout = 0;
-        //         ACKval = 0;
-        //         println("P ACK");
-        //     }
-
-        // } else if (!RCV && !RDY && OK) {
-        //     ACKtimeout++;
-        // }
-
-
-        if (command.equals("ACK") /*&& !ACK && RDY && RCV && OK*/) {
-            //println(subtext);
-
-            if (ACKval >= serialText.length()) {
-                ok = false;
-                ACK = true;
-                ACKtimeout = 0;
-                ACKval = 0;
-                println("P ACK");
-            }
-
-        } else if (!RCV && !RDY && OK) {
-            ACKtimeout++;
-        }
-
-        if (ACK) {
-            //If the text file has run out of numbers, then read the text file again in 5 seconds.
-            println("PACK ACK");
-            delay(500);
-            mySwitch = 1;
-            RCV = false;
-            RDY = false;
-            ACK = false;
-            newTextData = false;
-        }
-
-        // if (RCVtimeout >= 1000 || RCVtimeout >= 1000 || RCVtimeout >= 1000 || RCVtimeout >= 1000) {
-        //     RCV = false;
-        //     RDY = false;
-        //     ACK = false;
-        //     OK = true;
-
-        //     RCVtimeout = 0;
-        //     RDYtimeout = 0;
-        //     ACKtimeout = 0;
-        //     OKtimeout = 0;
-
-        //     println("TIMEOUT! TIMEOUT!");
-        // }
-    }
-}
-
-
-
-
-
-void serialEvent( Serial myPort) {
-    //put the incoming data into a String -
-    //the '\n' is our end delimiter indicating the end of a complete packet
-    val = myPort.readStringUntil('\n');
-    //make sure our data isn't empty before continuing
-    if (val != null) {
-        //trim whitespace and formatting characters (like carriage return)
-        val = trim(val);
-        println(val);
-        newSerialData = true;
-        //look for our 'A' string to start the handshake
-        //if it's there, clear the buffer, and send a request for data
-        if (firstContact == false) {
-            if (val.equals("A")) {
-                myPort.clear();
-                firstContact = true;
-                myPort.write("A\n");
-                println("contact");
-                delay(100);
-            }
-        }
-        if (val.length() >= 3) command = val.substring(0, 3);
-        if (newSerialData && val.length() > 4) {
-            newSerialData = false;
-            ACKval += int(val.substring(4));
-            println("pACKval " + ACKval);
-        }
-
-    }
->>>>>>> refs/remotes/origin/master
+void mouseClicked() {
+  if(mouseX > width - 190 && mouseY > height3 - 275 && mouseY < height3 - 245)
+  println("RESET");
+  for (int counter = 0; counter < maxPeakArray.length; counter++) {
+    maxPeakArray[counter] = 0;
+  }
+  //println("mouseX: " + mouseX + " mouseY: " + mouseY);
+  //println("targetX: " + (width - 190) + " targetY: " + (height3 - 245) + " OR " + (height3 - 275));
 }
