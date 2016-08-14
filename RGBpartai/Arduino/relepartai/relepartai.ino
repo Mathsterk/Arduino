@@ -30,21 +30,30 @@ char inData[80];
 byte index = 0;
 
 void setup() {
-	for (int pin = 2; pin >= 13; pin++) {
-		pinMode(pin, OUTPUT);
+	for (int pins = 2; pins >= 13; pins++) {
+		pinMode(pins, OUTPUT);
+		delay(10);
+		digitalWrite(pins, HIGH);
 	}
+			pinMode(22, OUTPUT);
+		pinMode(24, OUTPUT);
+		pinMode(26, OUTPUT);
+
+	digitalWrite(22, HIGH);
+	digitalWrite(24, HIGH);
+	digitalWrite(26, HIGH);
 
 	// Start off with the LED off.
-	setColourRgb(0, 0, 0); //, 0, 0, 0, 0, 0, 0);
+	// setColourRgb(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 	Serial.begin(4000000);	//turn on the serial connection
 	Serial.println("");
 	for (int boot = 0; boot <= 50; boot++) {
-		setColourRgb(boot, boot, boot); //, boot, boot, boot, boot, boot, boot);
+		// setColourRgb(boot, boot, boot, boot, boot, boot, boot, boot, boot);
 		delay(10);
 	}
 	for (int boot = 50; boot >= 0; boot--) {
-		setColourRgb(boot, boot, boot); //], boot, boot, boot, boot, boot, boot);
+		// setColourRgb(boot, boot, boot, boot, boot, boot, boot, boot, boot);
 		delay(10);
 	}
 	Serial.println("OK");
@@ -91,7 +100,7 @@ void loop() {
 				loopCount++;
 			}
 
-			setColourRgb(rgbColour[0], rgbColour[1], rgbColour[2]); //, rgbColour[3], rgbColour[4], rgbColour[5], rgbColour[6], rgbColour[7], rgbColour[8]);
+			setColourRgb(rgbColour[0], rgbColour[1], rgbColour[2], rgbColour[3], rgbColour[4], rgbColour[5], rgbColour[6], rgbColour[7], rgbColour[8]);
 
 
 			index = 0;
@@ -203,16 +212,28 @@ void loop() {
 
 }
 
-void setColourRgb(unsigned int red1, unsigned int green1, unsigned int blue1) { //, unsigned int red2, unsigned int green2, unsigned int blue2, unsigned int red3, unsigned int green3, unsigned int blue3) {
-	analogWrite(redPin1, red1);
-	analogWrite(greenPin1, green1);
-	analogWrite(bluePin1, blue1);
+void setColourRgb(unsigned int red1, unsigned int green1, unsigned int blue1, unsigned int red2, unsigned int green2, unsigned int blue2, unsigned int red3, unsigned int green3, unsigned int blue3) {
+	if (red1 > 200)
+	{
+		digitalWrite(22, LOW);
+	} else {
+		digitalWrite(22, HIGH);
+	}
 
-	// analogWrite(redPin2, 255 - red2);
-	// analogWrite(greenPin2, 255 - green2);
-	// analogWrite(bluePin2, 255 - blue2);
+	if (green1 > 127)
+	{
+		digitalWrite(24, LOW);
+	} else
+	{
+		digitalWrite(24, HIGH);
+	}
 
-	// analogWrite(redPin3, 255 - red3);
-	// analogWrite(greenPin3, 255 - green3);
-	// analogWrite(bluePin3, 255 - blue3);
+	if (blue1 > 100 || red2 > 100 || green2 > 100 || blue2 > 100 || red3 > 100 || green3 > 100 || blue3 > 100)
+	{
+		digitalWrite(26, LOW);
+	} else {
+		digitalWrite(26, HIGH);
+	}
+
+
 }
